@@ -1,0 +1,9 @@
+# JetBrains
+.idea
+
+# build
+obj
+bin
+
+# xUnit
+*.sln.DotSettings.user
