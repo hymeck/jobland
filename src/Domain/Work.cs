@@ -12,7 +12,10 @@ namespace Domain
         public string PhoneNumber { get; set; }
         public long? LowerPriceBound { get; set; }
         public long? UpperPriceBound { get; set; }
-        public Category Category { get; set; }
-        public Subcategory Subcategory { get; set; }
+        public long CategoryId { get; set; }
+        public virtual Category Category { get; set; }
+        public long SubcategoryId { get; set; }
+        public virtual Subcategory Subcategory { get; set; }
+        public override string ToString() => Name;
     }
 }
