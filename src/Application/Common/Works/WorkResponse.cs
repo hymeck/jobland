@@ -1,8 +1,8 @@
-namespace Application.Queries.Works
+namespace Application.Common.Works
 {
-    public sealed class GetWorkByNameQueryResponse
+    public sealed class WorkResponse
     {
-        public GetWorkByNameQueryResponse(WorkDto? item)
+        public WorkResponse(WorkDto? item)
         {
             Item = item;
             Success = item != null;

@@ -24,7 +24,7 @@ namespace Persistence.Configurations.Mysql
             builder
                 .Property(e => e.IconUrl)
                 .HasColumnName("icon")
-                .IsRequired()
+                .IsRequired(false)
                 .HasMaxLength(255);
 
             builder

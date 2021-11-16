@@ -1,7 +1,10 @@
 using System;
+using Application.Dao;
+using Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Persistence.Dao;
 
 namespace Persistence
 {
@@ -10,7 +13,8 @@ namespace Persistence
         public static IServiceCollection AddMysql(this IServiceCollection services,
             IConfiguration configuration) =>
             services
-                .AddEntityFrameworkMySql()
+                .AddScoped<IDaoAsync<Work>, DaoAsync<Work>>()
+                .AddScoped<IWorkDao, WorkDao>()
                 .AddDbContext<ApplicationDbContext>(options =>
                 {
                     options.UseMySql(configuration.GetConnectionString("mysql"),

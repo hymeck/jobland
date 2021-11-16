@@ -1,6 +1,7 @@
+using System.Text.Json.Serialization;
+using Application;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -32,7 +33,14 @@ namespace Web
                 // todo: add postgree in production environment
             }
 
+            // https://stackoverflow.com/questions/60197270/jsonexception-a-possible-object-cycle-was-detected-which-is-not-supported-this
             services
+                .AddMvc()
+                .AddJsonOptions(jsonOptions =>
+                    jsonOptions.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+            
+            services
+                .AddApplication()
                 .AddControllers();
         }
 
@@ -43,6 +51,8 @@ namespace Web
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {

@@ -8,9 +8,6 @@ namespace Application.Commands.Works
         public WorkMappingProfile()
         {
             CreateMap<CreateWorkCommand, Work>();
-
-            CreateMap<Work, CreateWorkCommandResponse>()
-                .ForMember(d => d.WorkId, map => map.MapFrom(s => s.Id));
         }
     }
 }
