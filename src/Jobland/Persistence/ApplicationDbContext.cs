@@ -1,9 +1,11 @@
-﻿using Jobland.Models;
+﻿using Jobland.Authentication;
+using Jobland.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jobland.Persistence;
 
-public sealed class ApplicationDbContext : DbContext
+public sealed class ApplicationDbContext : IdentityDbContext<User>
 {
     private readonly IConfiguration _configuration;
     public ApplicationDbContext(IConfiguration configuration)
