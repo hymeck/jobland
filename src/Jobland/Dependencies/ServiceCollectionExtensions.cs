@@ -10,9 +10,12 @@ public static class ServiceCollectionExtensions
         services.AddAutoMapper(Assembly.GetExecutingAssembly())
             .AddDbContext<ApplicationDbContext>((provider, optionsBuilder) =>
             {
-                var connectionString = provider
-                    .GetRequiredService<IConfiguration>()
-                    .GetConnectionString("RemoteMysql");
+                var connectionString = ConnectionString(provider);
                 optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
             });
+
+    private static string ConnectionString(IServiceProvider provider) =>
+        provider.GetRequiredService<IWebHostEnvironment>().IsDevelopment()
+            ? provider.GetRequiredService<IConfiguration>().GetConnectionString("RemoteMysql")
+            : Environment.GetEnvironmentVariable("MYSQLCONNSTR_RemoteMysql") ?? "";
 }
