@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jobland.Endpoints;
 
+[JwtBearerAuthorize]
 public static class CategoryEndpoints
 {
     private const string CategoriesRoot = "/categories";

@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddCors()
-            .AddAuthorization()
+            .AddRouting()
             .AddAuthentication(auth =>
             {
                 auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -42,11 +42,12 @@ public static class ServiceCollectionExtensions
             .AddJwtBearer(jwt =>
             {
                 jwt.SaveToken = true;
+                jwt.ClaimsIssuer = configuration["Jwt:Issuer"];
                 jwt.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = false,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Issuer"],
@@ -54,6 +55,7 @@ public static class ServiceCollectionExtensions
                     RequireExpirationTime = false, // todo : configure depending of appsettings.json JWT section value
                 };
             });
+        services.AddAuthorization();
         return services;
     }
 

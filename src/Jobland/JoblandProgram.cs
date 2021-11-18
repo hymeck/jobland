@@ -8,14 +8,13 @@ await using var app = builder.Build();
 
 app.UseDeveloperExceptionPage();
 
-app.UseRouting();
-
 app.UseCors(c => c
     .AllowAnyOrigin()
     .AllowAnyMethod()
     .AllowAnyHeader());
 
 app.UseAuthentication()
+    .UseRouting()
     .UseAuthorization();
 
 app.AddEndpoints();
