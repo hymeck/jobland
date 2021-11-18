@@ -22,3 +22,11 @@ public class AuthResult
     public static AuthResult Fail(List<string> errors) => new(errors);
     public static AuthResult Fail(string error) => new(new List<string> { error });
 }
+
+public static class AuthResults
+{
+    public static AuthResult InvalidInput() => AuthResult.Fail("invalid input");
+    public static AuthResult AccountAlreadyExists() => AuthResult.Fail("account with specified email already exists");
+    public static AuthResult EmailNotFound() => AuthResult.Fail("there is no account with specified email");
+    public static AuthResult IncorrectPassword() => AuthResult.Fail("incorrect password");
+}
