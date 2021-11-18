@@ -8,7 +8,7 @@ public static class HttpContextExtensions
     /// <param name="httpContext">http context.</param>
     /// <typeparam name="T">type of json object.</typeparam>
     /// <returns>if success, object of <see cref="T"/>, otherwise, <c>null</c>.</returns>
-    public static async Task<T?> TakeJsonSafe<T>(this HttpContext? httpContext) where T : class
+    public static async Task<T?> SafeGetJsonAsync<T>(this HttpContext? httpContext) where T : class
     {
         if (httpContext == null)
             return default;

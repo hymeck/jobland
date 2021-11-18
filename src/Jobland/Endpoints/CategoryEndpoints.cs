@@ -23,7 +23,7 @@ public static class CategoryEndpoints
     {
         app.MapPost(CategoriesRoot, async (HttpContext http, ApplicationDbContext db, IMapper mapper) =>
         {
-            var dto = await http.Request.ReadFromJsonAsync<CategoryAddRequest>();
+            var dto = await http.SafeGetJsonAsync<CategoryAddRequest>();
             if (dto == null)
                 return Results.BadRequest();
 
@@ -73,7 +73,7 @@ public static class CategoryEndpoints
     {
         app.MapPut(CategoriesId, async (HttpContext http, long id, ApplicationDbContext db) =>
         {
-            var dto = await http.Request.ReadFromJsonAsync<CategoryUpdateRequest>();
+            var dto = await http.SafeGetJsonAsync<CategoryUpdateRequest>();
             if (dto == null || dto.Id != id)
                 return Results.BadRequest();
             var entity = await db.Categories

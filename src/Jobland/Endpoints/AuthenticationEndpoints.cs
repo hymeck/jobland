@@ -19,7 +19,7 @@ public static class AuthenticationEndpoints
         app.MapPost(RegisterRoot,
             async (HttpContext http, UserManager<User> userManager, IMapper mapper, IJwtTokenService tokenService) =>
             {
-                var dto = await http.TakeJsonSafe<RegistrationRequest>();
+                var dto = await http.SafeGetJsonAsync<RegistrationRequest>();
                 if (dto == null)
                     return Results.BadRequest(AuthResults.InvalidInput());
 
@@ -39,7 +39,7 @@ public static class AuthenticationEndpoints
     {
         app.MapPost(LoginRoot, async (HttpContext http, UserManager<User> userManager, IJwtTokenService tokenService) =>
         {
-            var dto = await http.TakeJsonSafe<LoginRequest>();
+            var dto = await http.SafeGetJsonAsync<LoginRequest>();
             if (dto == null)
                 return Results.BadRequest(AuthResults.InvalidInput());
 
