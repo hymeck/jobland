@@ -1,6 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Jobland.Authentication;
@@ -12,18 +11,12 @@ public interface IJwtTokenService
 
 public class JwtTokenService : IJwtTokenService
 {
-    private readonly IConfiguration _configuration;
-
-    public JwtTokenService(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
+    private readonly JwtConfiguration _jwt;
+    public JwtTokenService(IJwtConfigurationProvider provider) => _jwt = provider.GetJwtConfiguration();
 
     public string GenerateJwtToken(User user)
     {
-        var jwtHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
-
+        var key = _jwt.KeyBytes();
         var descriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
@@ -37,6 +30,7 @@ public class JwtTokenService : IJwtTokenService
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
 
+        var jwtHandler = new JwtSecurityTokenHandler();
         var securityToken = jwtHandler.CreateToken(descriptor);
         return jwtHandler.WriteToken(securityToken);
     }

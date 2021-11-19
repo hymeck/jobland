@@ -2,7 +2,7 @@ using Jobland.Dependencies;
 using Jobland.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDependencies(builder.Configuration);
+builder.Services.AddDependencies(builder.Configuration, builder.Environment);
 
 await using var app = builder.Build();
 

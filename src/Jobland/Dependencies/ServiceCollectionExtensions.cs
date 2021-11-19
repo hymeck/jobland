@@ -11,12 +11,15 @@ namespace Jobland.Dependencies;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddDependencies(this IServiceCollection services, IConfiguration configuration) =>
+    public static IServiceCollection AddDependencies(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env) =>
         services
             .AddAutoMapper(Assembly.GetExecutingAssembly())
+            .AddScoped<IJwtConfigurationProvider, JwtConfigurationProvider>(sp => 
+                new JwtConfigurationProvider(sp.GetRequiredService<IConfiguration>(),
+                sp.GetRequiredService<IWebHostEnvironment>()))
             .AddScoped<IJwtTokenService, JwtTokenService>()
+            .AddJwt(configuration, env)
             .AddIdentity()
-            .AddJwt(configuration)
             .AddDbContext<ApplicationDbContext>((provider, optionsBuilder) =>
             {
                 var connectionString = ConnectionString(provider);
@@ -28,8 +31,10 @@ public static class ServiceCollectionExtensions
             ? provider.GetRequiredService<IConfiguration>().GetConnectionString("RemoteMysql")
             : Environment.GetEnvironmentVariable("MYSQLCONNSTR_RemoteMysql") ?? "";
 
-    private static IServiceCollection AddJwt(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddJwt(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
+        var issuer = config.JwtIssuer();
+        var key = config.JwtKey(env);
         services
             .AddCors()
             .AddRouting()
@@ -42,16 +47,16 @@ public static class ServiceCollectionExtensions
             .AddJwtBearer(jwt =>
             {
                 jwt.SaveToken = true;
-                jwt.ClaimsIssuer = configuration["Jwt:Issuer"];
+                jwt.ClaimsIssuer = issuer;
                 jwt.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = configuration["Jwt:Issuer"],
-                    ValidAudience = configuration["Jwt:Issuer"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
+                    ValidIssuer = issuer,
+                    ValidAudience = issuer,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key)),
                     RequireExpirationTime = false, // todo : configure depending of appsettings.json JWT section value
                 };
             });
