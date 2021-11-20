@@ -5,5 +5,6 @@ public static class WebApplicationExtensions
     public static WebApplication AddEndpoints(this WebApplication app) =>
         app
             .AddCategoryEndpoints()
-            .AddAuthenticationEndpoints();
+            .AddAuthenticationEndpoints()
+            .AddWorkEndpoints();
 }

@@ -40,5 +40,9 @@ public sealed class Work : AuditableEntity
     [MaxLength(30)] public string? PhoneNumber { get; set; } = "";
     public long? LowerPriceBound { get; set; }
     public long? UpperPriceBound { get; set; }
+    public Category? Category { get; set; }
+    public long CategoryId { get; set; }
+    public Subcategory? Subcategory { get; set; }
+    public long SubcategoryId { get; set; }
     public override string ToString() => Title;
 }
