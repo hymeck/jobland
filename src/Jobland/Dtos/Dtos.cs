@@ -12,3 +12,4 @@ public sealed record WorkDto(long Id, string Title, string Description, DateTime
     DateTime? FinishedOn,
     string PhoneNumber, long? LowerPriceBound, long? UpperPriceBound, 
     CategoryDto Category, SubcategoryListItemDto Subcategory);
+public sealed record WorkCountDto(int Count);

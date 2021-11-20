@@ -99,7 +99,7 @@ public static class WorkEndpoints
 
     private static WebApplication GetWorkCount(this WebApplication app)
     {
-        app.MapGet(WorkCount, async (ApplicationDbContext db) => Results.Ok(await db.Works.CountAsync()));
+        app.MapGet(WorkCount, async (ApplicationDbContext db) => Results.Ok(new WorkCountDto(await db.Works.CountAsync())));
         return app;
     }
 }
