@@ -13,6 +13,7 @@ public static class WorkEndpoints
     public const string WorkIdRoot = WorkRoot + "/{id}";
     public const string WorkTitleRoot = WorkRoot + "-title";
     public const string WorkCount = WorkRoot + "/count";
+    public const string WorkFilterRoot = WorkRoot + "/filter";
 
     public static WebApplication AddWorkEndpoints(this WebApplication app) =>
         app
@@ -20,7 +21,8 @@ public static class WorkEndpoints
             .GetWorkById()
             .GetWorksByTitle()
             .GetWorks()
-            .GetWorkCount();
+            .GetWorkCount()
+            .GetWorksByFilter();
 
     private static WebApplication GetWorkById(this WebApplication app)
     {
@@ -100,6 +102,48 @@ public static class WorkEndpoints
     private static WebApplication GetWorkCount(this WebApplication app)
     {
         app.MapGet(WorkCount, async (ApplicationDbContext db) => Results.Ok(new WorkCountDto(await db.Works.CountAsync())));
+        return app;
+    }
+
+    private static WebApplication GetWorksByFilter(this WebApplication app)
+    {
+        app.MapGet(WorkFilterRoot, async (HttpContext http, ApplicationDbContext db, IMapper mapper) =>
+        {
+            var request = await http.SafeGetJsonAsync<GetWorksByFilterRequest>();
+            if (request == null)
+                return Results.BadRequest();
+
+            var categories = request.Subcategories;
+            var lower = request.LowerPriceBound;
+            var upper = request.UpperPriceBound;
+            var started = request.StartedOn;
+            var finished = request.FinishedOn;
+            var responded = request.Responded.GetValueOrDefault(false); // todo: add it to business logic
+
+            var entities = db.Works.AsNoTracking()
+                .Include(w => w.Category)
+                .Include(w => w.Subcategory)
+                .OrderByDescending(w => w.Added)
+                .AsQueryable();
+            
+            if (categories != null)
+                entities = entities.Where(w => categories.Contains(w.SubcategoryId));
+            if (lower != null)
+                entities = entities.Where(w => w.LowerPriceBound >= lower.GetValueOrDefault());
+            if (upper != null) 
+                entities = entities.Where(w => w.LowerPriceBound <= upper.GetValueOrDefault());
+            if (started != null) 
+                entities = entities.Where(w => w.StartedOn >= started.GetValueOrDefault());
+            if (finished != null) 
+                entities = entities.Where(w => w.FinishedOn <= finished.GetValueOrDefault());
+
+#if DEBUG
+            var dtos = mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities.AsEnumerable()).ToArray();
+            return Results.Ok(dtos);
+#else
+            return Results.Ok(mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities.AsEnumerable()));
+#endif
+        });
         return app;
     }
 }
