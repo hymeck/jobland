@@ -44,5 +44,6 @@ public sealed class Work : AuditableEntity
     public long CategoryId { get; set; }
     public Subcategory? Subcategory { get; set; }
     public long SubcategoryId { get; set; }
+    [MaxLength(255)] public string AuthorId { get; set; } = "";
     public override string ToString() => Title;
 }
