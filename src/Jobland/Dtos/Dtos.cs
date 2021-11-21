@@ -11,7 +11,6 @@ public sealed record CategoryDto(long Id, string Name, string? IconUrl);
 public sealed record WorkDto(long Id, string Title, string Description, DateTime? StartedOn,
     DateTime? FinishedOn,
     string PhoneNumber, long? LowerPriceBound, long? UpperPriceBound,
-    CategoryDto Category, SubcategoryListItemDto Subcategory, DateTime? Added, DateTime? Modified);
+    CategoryDto Category, SubcategoryListItemDto Subcategory, DateTime? Added, DateTime? Modified, string AuthorId, long? ResponseCount);
 public sealed record WorkCountDto(int Count);
-public sealed record GetWorksByFilterRequest(long[]? Subcategories, long? LowerPriceBound, long? UpperPriceBound,
-    DateTime? StartedOn, DateTime? FinishedOn, bool? Responded);
+

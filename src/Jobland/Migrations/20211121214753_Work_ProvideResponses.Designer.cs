@@ -3,6 +3,7 @@ using System;
 using Jobland.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jobland.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211121214753_Work_ProvideResponses")]
+    partial class Work_ProvideResponses
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -185,9 +187,6 @@ namespace Jobland.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("varchar(30)");
 
-                    b.Property<long?>("ResponseCount")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("StartedOn")
                         .HasColumnType("datetime(6)");
 
@@ -209,6 +208,25 @@ namespace Jobland.Migrations
                     b.HasIndex("SubcategoryId");
 
                     b.ToTable("Works");
+                });
+
+            modelBuilder.Entity("Jobland.Models.WorkDetails", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Responses")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("WorkId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkId");
+
+                    b.ToTable("WorkDetails");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -365,6 +383,17 @@ namespace Jobland.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("Subcategory");
+                });
+
+            modelBuilder.Entity("Jobland.Models.WorkDetails", b =>
+                {
+                    b.HasOne("Jobland.Models.Work", "Work")
+                        .WithMany()
+                        .HasForeignKey("WorkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Work");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
