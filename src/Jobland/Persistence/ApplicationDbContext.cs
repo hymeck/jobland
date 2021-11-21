@@ -22,6 +22,7 @@ public sealed class ApplicationDbContext : IdentityDbContext<User>
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Subcategory> Subcategories => Set<Subcategory>();
     public DbSet<Work> Works => Set<Work>();
+    public DbSet<WorkDetails> WorkDetails => Set<WorkDetails>();
 
     public override Task<int> SaveChangesAsync(CancellationToken token = default)
     {

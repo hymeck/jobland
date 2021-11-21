@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Jobland.Models;
 
@@ -46,4 +48,18 @@ public sealed class Work : AuditableEntity
     public long SubcategoryId { get; set; }
     [MaxLength(255)] public string AuthorId { get; set; } = "";
     public override string ToString() => Title;
+}
+
+public sealed class WorkDetails : Entity
+{
+    public long? Responses { get; private set; } = 0; 
+    public long WorkId { get; set; }
+    public Work? Work { get; set; }
+    public WorkDetails IncrementResponses()
+    {
+        Responses += 1;
+        return this;
+    }
+
+    public override string ToString() => Responses.GetValueOrDefault(-1).ToString();
 }
