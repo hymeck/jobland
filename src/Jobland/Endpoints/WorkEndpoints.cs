@@ -41,9 +41,7 @@ public static class WorkEndpoints
             var title = http.Request.Query["title"].ToString();
             if (string.IsNullOrEmpty(title))
                 return Results.BadRequest();
-            var entities = db.Works.AsNoTracking()
-                .Include(w => w.Category)
-                .Include(w => w.Subcategory)
+            var entities = db.NoTrackingWorksWithIncludedEntities()
                 .Where(w => w.Title.Contains(title))
                 .AsEnumerable();
 
@@ -69,6 +67,7 @@ public static class WorkEndpoints
             var entity = mapper.Map<WorkAddRequest, Work>(dto);
             entity.Subcategory = subcategory;
             entity.Category = subcategory.Category;
+            entity.AuthorId = ""; // todo: extract userId from http when fix auth and put it here
             db.Works.Add(entity);
             var affected = await db.SaveChangesAsync();
             return affected > 0
@@ -89,10 +88,8 @@ public static class WorkEndpoints
                 return Results.BadRequest();
             if (o < 0 || l < 0)
                 return Results.BadRequest();
-            var entities = db.Works.AsNoTracking()
-                .Include(w => w.Category)
-                .Include(w => w.Subcategory)
-                .OrderByDescending(w => w.Added)
+            var entities = db.NoTrackingWorksWithIncludedEntities()
+                .DescendingOrderedByAdded()
                 .Skip(o).Take(l).AsEnumerable();
             return Results.Ok(mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities));
         });
@@ -120,11 +117,7 @@ public static class WorkEndpoints
             var finished = request.FinishedOn;
             var responded = request.Responded.GetValueOrDefault(false); // todo: add it to business logic
 
-            var entities = db.Works.AsNoTracking()
-                .Include(w => w.Category)
-                .Include(w => w.Subcategory)
-                .OrderByDescending(w => w.Added)
-                .AsQueryable();
+            var entities = db.NoTrackingWorksWithIncludedEntities();
             
             if (categories != null)
                 entities = entities.Where(w => categories.Contains(w.SubcategoryId));
@@ -146,4 +139,12 @@ public static class WorkEndpoints
         });
         return app;
     }
+
+    private static IQueryable<Work> NoTrackingWorksWithIncludedEntities(this ApplicationDbContext db) =>
+        db.Works
+            .AsNoTracking()
+            .Include(w => w.Category)
+            .Include(w => w.Subcategory);
+
+    private static IOrderedQueryable<Work> DescendingOrderedByAdded(this IQueryable<Work> works) => works.OrderByDescending(w => w.Added);
 }
