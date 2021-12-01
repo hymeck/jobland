@@ -15,6 +15,7 @@ public static class WorkEndpoints
     public const string WorkTitleRoot = WorkRoot + "-title";
     public const string WorkCount = WorkRoot + "/count";
     public const string WorkFilterRoot = WorkRoot + "/filter";
+    public const string RespondWorkRoot = "/respond";
 
     public static WebApplication AddWorkEndpoints(this WebApplication app) =>
         app
@@ -23,7 +24,8 @@ public static class WorkEndpoints
             .GetWorksByTitle()
             .GetWorks()
             .GetWorkCount()
-            .GetWorksByFilter();
+            .GetWorksByFilter()
+            .RespondWork();
 
     private static WebApplication GetWorkById(this WebApplication app)
     {
@@ -143,6 +145,20 @@ public static class WorkEndpoints
 #else
             return Results.Ok(mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities.AsEnumerable()));
 #endif
+        });
+        return app;
+    }
+
+    private static WebApplication RespondWork(this WebApplication app)
+    {
+        app.MapPost(RespondWorkRoot, async ([FromQuery] long id, ApplicationDbContext db) =>
+        {
+            var work = await db.Works.FirstOrDefaultAsync(w => w.Id == id);
+            if (work == null)
+                return Results.NotFound();
+            db.Works.Update(work.IncrementResponses());
+            await db.SaveChangesAsync();
+            return Results.Ok();
         });
         return app;
     }
