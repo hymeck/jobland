@@ -7,167 +7,176 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jobland.Endpoints;
 
-[JwtBearerAuthorize]
-public static class WorkEndpoints
+public class WorkEndpoints : ApiEndpointBase
 {
     public const string WorkRoot = "/works";
     public const string WorkIdRoot = WorkRoot + "/{id}";
     public const string WorkTitleRoot = WorkRoot + "-title";
-    public const string WorkCount = WorkRoot + "/count";
+    public const string WorkCountRoot = WorkRoot + "/count";
     public const string WorkFilterRoot = WorkRoot + "/filter";
-    public const string RespondWorkRoot = "/respond";
+    public const string RespondWorkRoot = WorkRoot + "/respond";
 
-    public static WebApplication AddWorkEndpoints(this WebApplication app) =>
-        app
-            .AddWork()
-            .GetWorkById()
-            .GetWorksByTitle()
-            .GetWorks()
-            .GetWorkCount()
-            .GetWorksByFilter()
-            .RespondWork();
+    private readonly ApplicationDbContext _db;
+    private readonly IMapper _mapper;
 
-    private static WebApplication GetWorkById(this WebApplication app)
+    public WorkEndpoints(ApplicationDbContext db, IMapper mapper)
     {
-        app.MapGet(WorkIdRoot, async (long id, ApplicationDbContext db) =>
-        {
-            var entity = await db.NoTrackingWorksWithIncludedEntities().FirstOrDefaultAsync(x => x.Id == id);
-            return entity != null ? Results.Ok(entity) : Results.NotFound();
-        });
-        return app;
+        _db = db;
+        _mapper = mapper;
     }
 
-    private static WebApplication GetWorksByTitle(this WebApplication app)
+    [HttpPost(WorkRoot)]
+    public async Task<IActionResult> AddWork([FromBody] WorkAddRequest? dto)
     {
-        app.MapGet(WorkTitleRoot, (HttpContext http, ApplicationDbContext db, IMapper mapper) =>
-        {
-            var title = http.Request.Query["title"].ToString();
-            if (string.IsNullOrEmpty(title))
-                return Results.BadRequest();
-            var entities = db.NoTrackingWorksWithIncludedEntities()
-                .Where(w => w.Title.Contains(title))
-                .AsEnumerable();
+        if (dto == null)
+            return BadRequest();
 
-            return Results.Ok(mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities));
-        });
-        return app;
+        var subcategory = await _db.Subcategories
+            .Include(sc => sc.Category)
+            .FirstOrDefaultAsync(sc => sc.Id == dto.SubcategoryId);
+        if (subcategory == null)
+            return BadRequest();
+
+        var entity = _mapper.Map<WorkAddRequest, Work>(dto);
+        entity.Subcategory = subcategory;
+        entity.Category = subcategory.Category;
+        entity.AuthorId = CurrentUserId;
+        _db.Works.Add(entity);
+        var affected = await _db.SaveChangesAsync();
+        return affected > 0
+            ? Created(WorkIdRoot, _mapper.Map<Work, WorkDto>(entity))
+            : UnprocessableEntity();
     }
 
-    private static WebApplication AddWork(this WebApplication app)
+    [HttpGet(WorkIdRoot)]
+    public async Task<IActionResult> GetWorkById(long id)
     {
-        app.MapPost(WorkRoot, async (HttpContext http, ApplicationDbContext db, IMapper mapper) =>
-        {
-            var dto = await http.SafeGetJsonAsync<WorkAddRequest>();
-            if (dto == null)
-                return Results.BadRequest();
-
-            var subcategory = await db.Subcategories
-                .Include(sc => sc.Category)
-                .FirstOrDefaultAsync(sc => sc.Id == dto.SubcategoryId);
-            if (subcategory == null)
-                return Results.BadRequest();
-
-            var entity = mapper.Map<WorkAddRequest, Work>(dto);
-            entity.Subcategory = subcategory;
-            entity.Category = subcategory.Category;
-            entity.AuthorId = ""; // todo: extract userId from http when fix auth and put it here
-            db.Works.Add(entity);
-            var affected = await db.SaveChangesAsync();
-            return affected > 0
-                ? Results.Created(WorkIdRoot, mapper.Map<Work, WorkDto>(entity))
-                : Results.UnprocessableEntity();
-        });
-        return app;
+        var entity = await _db.NoTrackingWorksWithIncludedEntities().FirstOrDefaultAsync(x => x.Id == id);
+        return entity != null ? Ok(entity) : NotFound();
     }
 
-    private static WebApplication GetWorks(this WebApplication app)
+    [HttpGet(WorkTitleRoot)]
+    public IActionResult GetWorksByTitle([FromQuery] string? title)
     {
-        app.MapGet(WorkRoot, (HttpContext http, ApplicationDbContext db, IMapper mapper) =>
-        {
-            var query = http.Request.Query;
-            var offsetStr = (string)query["offset"] ?? "0";
-            var limitStr = (string)query["limit"] ?? "50";
-            if (!int.TryParse(offsetStr, out var o) || !int.TryParse(limitStr, out var l))
-                return Results.BadRequest();
-            if (o < 0 || l < 0)
-                return Results.BadRequest();
-            var entities = db.NoTrackingWorksWithIncludedEntities()
-                .DescendingOrderedByAdded()
-                .Skip(o).Take(l).AsEnumerable();
-            return Results.Ok(mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities));
-        });
-        return app;
+        if (string.IsNullOrEmpty(title))
+            return BadRequest();
+        var entities = _db.NoTrackingWorksWithIncludedEntities()
+            .DescendingOrderedByAdded()
+            .Where(w => w.Title.Contains(title))
+            .AsEnumerable();
+
+        return Ok(_mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities));
     }
-
-    private static WebApplication GetWorkCount(this WebApplication app)
+    
+    [HttpGet(WorkRoot)]
+    public IActionResult GetWorks([FromQuery] string? offset, [FromQuery] string? limit)
     {
-        app.MapGet(WorkCount, async (ApplicationDbContext db) => Results.Ok(new WorkCountDto(await db.Works.CountAsync())));
-        return app;
+        var offsetStr = offset ?? "0";
+        var limitStr = limit ?? "50";
+        if (!int.TryParse(offsetStr, out var o) || !int.TryParse(limitStr, out var l))
+            return BadRequest();
+        if (o < 0 || l < 0)
+            return BadRequest();
+        var entities = _db.NoTrackingWorksWithIncludedEntities()
+            .DescendingOrderedByAdded()
+            .Skip(o).Take(l).AsEnumerable();
+        return Ok(_mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities));
     }
+    
+    [HttpGet(WorkCountRoot)]
+    public async Task<IActionResult> GetWorkCount() => Ok(new WorkCountDto(await _db.Works.CountAsync()));
 
-    private static WebApplication GetWorksByFilter(this WebApplication app)
+    [HttpGet(WorkFilterRoot)]
+    public IActionResult GetWorksByFilter(
+        [FromQuery] long? lowerPriceBound,
+        [FromQuery] long? upperPriceBound, 
+        [FromQuery] DateTime? started,
+        [FromQuery] DateTime? finished,
+        [FromQuery] bool? withResponses)
     {
-        app.MapGet(WorkFilterRoot,  (HttpContext http, ApplicationDbContext db, IMapper mapper,
-            [FromQuery] long? lowerPriceBound,
-            [FromQuery] long? upperPriceBound, 
-            [FromQuery] DateTime? started,
-            [FromQuery] DateTime? finished,
-            [FromQuery] bool? withResponses) =>
-        {
-            var ids = http.Request.Query["subcategories"].ToString()?.Split(',')
-                .Select(id => long.TryParse(id, out var value) ? value : 0)
-                .Where(id => id > 0)
-                .ToList();
-            var lower = lowerPriceBound;
-            var upper = upperPriceBound;
-            var startedOn = started;
-            var finishedOn = finished;
-            var responded = withResponses; // todo: add it to business logic
+        var ids = HttpContext.Request.Query["subcategories"].ToString()?.Split(',')
+            .Select(id => long.TryParse(id, out var value) ? value : 0)
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+        var lower = lowerPriceBound;
+        var upper = upperPriceBound;
+        var startedOn = started;
+        var finishedOn = finished;
+        var responded = withResponses; // todo: add it to business logic
 
-            var entities = db.NoTrackingWorksWithIncludedEntities();
+        var entities = _db.NoTrackingWorksWithIncludedEntities();
             
-            if (ids != null && ids.Count != 0)
-                entities = entities.Where(w => ids.Contains(w.SubcategoryId));
-            if (lower != null)
-                entities = entities.Where(w => w.LowerPriceBound >= lower.GetValueOrDefault());
-            if (upper != null) 
-                entities = entities.Where(w => w.LowerPriceBound <= upper.GetValueOrDefault());
-            if (startedOn != null) 
-                entities = entities.Where(w => w.StartedOn >= started.GetValueOrDefault());
-            if (finishedOn != null) 
-                entities = entities.Where(w => w.FinishedOn <= finished.GetValueOrDefault());
-            if (responded != null && !responded.GetValueOrDefault())
-                entities = entities.Where(w => w.ResponseCount == 0);
+        if (ids != null && ids.Count != 0)
+            entities = entities.Where(w => ids.Contains(w.SubcategoryId));
+        if (lower != null)
+            entities = entities.Where(w => w.LowerPriceBound >= lower.GetValueOrDefault());
+        if (upper != null) 
+            entities = entities.Where(w => w.LowerPriceBound <= upper.GetValueOrDefault());
+        if (startedOn != null) 
+            entities = entities.Where(w => w.StartedOn >= started.GetValueOrDefault());
+        if (finishedOn != null) 
+            entities = entities.Where(w => w.FinishedOn <= finished.GetValueOrDefault());
+        if (responded != null && !responded.GetValueOrDefault())
+            entities = entities.Where(w => w.ResponseCount == 0);
 
 #if DEBUG
-            var dtos = mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities.AsEnumerable()).ToArray();
-            return Results.Ok(dtos);
+        var dtos = _mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities.AsEnumerable()).ToArray();
+        return Ok(dtos);
 #else
             return Results.Ok(mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities.AsEnumerable()));
 #endif
-        });
-        return app;
     }
 
-    private static WebApplication RespondWork(this WebApplication app)
+    [HttpPost(RespondWorkRoot)]
+    public async Task<IActionResult> RespondWork([FromQuery] long id)
     {
-        app.MapPost(RespondWorkRoot, async ([FromQuery] long id, ApplicationDbContext db) =>
-        {
-            var work = await db.Works.FirstOrDefaultAsync(w => w.Id == id);
-            if (work == null)
-                return Results.NotFound();
-            db.Works.Update(work.IncrementResponses());
-            await db.SaveChangesAsync();
-            return Results.Ok();
-        });
-        return app;
+        var work = await _db.Works.FirstOrDefaultAsync(w => w.Id == id);
+        if (work == null)
+            return BadRequest();
+        _db.Works.Update(work.IncrementResponses());
+        await _db.SaveChangesAsync();
+        return Ok();
     }
 
-    private static IQueryable<Work> NoTrackingWorksWithIncludedEntities(this ApplicationDbContext db) =>
-        db.Works
-            .AsNoTracking()
-            .Include(w => w.Category)
-            .Include(w => w.Subcategory);
+    [HttpPut(WorkRoot)]
+    public async Task<IActionResult> EditWork([FromBody] WorkEditRequest? dto)
+    {
+        if (dto == null)
+            return BadRequest();
 
-    private static IOrderedQueryable<Work> DescendingOrderedByAdded(this IQueryable<Work> works) => works.OrderByDescending(w => w.Added);
+        var entity = await _db.Works.FirstOrDefaultAsync(w => w.Id == dto.Id);
+        if (entity == null)
+            return NotFound();
+
+        if (entity.AuthorId != CurrentUserId)
+            return Forbid();
+
+        if (!string.IsNullOrEmpty(dto.Description))
+            entity.Description = dto.Description;
+        if (!string.IsNullOrEmpty(dto.Title))
+            entity.Title = dto.Title;
+        if (!string.IsNullOrEmpty(dto.PhoneNumber))
+            entity.PhoneNumber = entity.PhoneNumber;
+        if (dto.StartedOn.HasValue)
+            entity.StartedOn = dto.StartedOn.GetValueOrDefault();
+        if (dto.FinishedOn.HasValue)
+            entity.FinishedOn = dto.FinishedOn.GetValueOrDefault();
+        if (dto.LowerPriceBound.HasValue)
+            entity.LowerPriceBound = dto.LowerPriceBound;
+        if (dto.UpperPriceBound.HasValue)
+            entity.UpperPriceBound = dto.UpperPriceBound;
+
+        if (dto.SubcategoryId.HasValue)
+        {
+            var subcategory = await _db.Subcategories.FirstOrDefaultAsync(sc => sc.Id == dto.SubcategoryId.GetValueOrDefault());
+            if (subcategory != null)
+                entity.Subcategory = subcategory;
+        }
+            
+        _db.Works.Add(entity);
+        await _db.SaveChangesAsync();
+        
+        return NoContent();
+    }
 }

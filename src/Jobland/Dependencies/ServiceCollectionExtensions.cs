@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDependencies(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env) =>
         services
+            .AddApiControllers()
             .AddAutoMapper(Assembly.GetExecutingAssembly())
             .AddScoped<IJwtConfigurationProvider, JwtConfigurationProvider>(sp => 
                 new JwtConfigurationProvider(sp.GetRequiredService<IConfiguration>(),
@@ -75,6 +76,12 @@ public static class ServiceCollectionExtensions
                 identityOptions.Password.RequireDigit = false;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>();
+        return services;
+    }
+
+    private static IServiceCollection AddApiControllers(this IServiceCollection services)
+    {
+        services.AddControllers();
         return services;
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 
-namespace Jobland.Endpoints;
+namespace Jobland.Authentication;
 
 public class JwtBearerAuthorizeAttribute : AuthorizeAttribute
 {

@@ -17,6 +17,6 @@ app.UseAuthentication()
     .UseRouting()
     .UseAuthorization();
 
-app.AddEndpoints();
+app.MapControllers();
 
 await app.RunAsync();
