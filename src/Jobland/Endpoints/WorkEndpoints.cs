@@ -124,7 +124,7 @@ public class WorkEndpoints : ApiEndpointBase
         var dtos = _mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities.AsEnumerable()).ToArray();
         return Ok(dtos);
 #else
-            return Results.Ok(mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities.AsEnumerable()));
+            return Ok(_mapper.Map<IEnumerable<Work>, IEnumerable<WorkDto>>(entities.AsEnumerable()));
 #endif
     }
 
