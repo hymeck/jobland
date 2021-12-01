@@ -13,4 +13,5 @@ public sealed record WorkDto(long Id, string Title, string Description, DateTime
     string PhoneNumber, long? LowerPriceBound, long? UpperPriceBound,
     CategoryDto Category, SubcategoryListItemDto Subcategory, DateTime? Added, DateTime? Modified, string AuthorId, long? ResponseCount);
 public sealed record WorkCountDto(int Count);
-
+public sealed record WorkEditRequest(long Id, string? Title, string? Description, DateTime? StartedOn, 
+    DateTime? FinishedOn, string? PhoneNumber, long? LowerPriceBound, long? UpperPriceBound, long? SubcategoryId);
