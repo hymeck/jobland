@@ -8,6 +8,7 @@ public sealed class IdentityEndpoints : ApiEndpointBase
 {
     public const string RegisterRoot = "/register";
     public const string LoginRoot = "/login";
+    public const string VerifyCredentialsRoot = "/verify";
     
     [AllowAnonymous]
     [HttpPost(RegisterRoot)]
@@ -34,4 +35,11 @@ public sealed class IdentityEndpoints : ApiEndpointBase
             _ => BadRequest(response)
         };
     }
+
+    [AllowAnonymous]
+    [HttpGet(VerifyCredentialsRoot)]
+    public async Task<IActionResult> VerifyCredentials([FromBody] CheckCredentialsValidityRequest request,
+        CancellationToken token) =>
+        (await Sender.Send(request, token)).Match(r => (IActionResult)Ok(r), BadRequest);
+
 }

@@ -47,7 +47,7 @@ public class WorkRepository : IWorkRepository
         var works = (offset, limit) switch
         {
             (< 0, _) => Enumerable.Empty<Work>(),
-            (_, < 0) => Enumerable.Empty<Work>(),
+            (_, <= 0) => Enumerable.Empty<Work>(),
             _ => _db.NoTrackingWorksWithIncludedEntities()
                 .OrderedByDescendingAdded()
                 .Skip(offset).Take(limit)

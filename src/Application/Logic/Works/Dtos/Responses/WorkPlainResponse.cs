@@ -1,6 +1,4 @@
-﻿using Jobland.Application.Logic.Categories.Dtos;
-using Jobland.Application.Logic.Categories.Dtos.Responses;
-using Jobland.Application.Logic.Subcategories.Dtos;
+﻿using Jobland.Application.Logic.Categories.Dtos.Responses;
 using Jobland.Application.Logic.Subcategories.Dtos.Responses;
 
 namespace Jobland.Application.Logic.Works.Dtos.Responses;
