@@ -25,8 +25,10 @@ public class JoblandStartup
 
         services
             .AddScoped<IJwtTokenService, JwtTokenService>()
-            .AddScoped<IJwtConfigurationProvider, JwtConfigurationProvider>();
-        
+            .AddScoped<IJwtConfigurationProvider, JwtConfigurationProvider>()
+            .AddScoped<IProfileImageSensitiveStorageDataProvider, ProfileImageSensitiveStorageDataProvider>()
+            .AddScoped<IProfileImageService, ProfileImageService>();
+
         var issuer = _configuration.JwtIssuer();
         var key = _configuration.JwtKey(_env);
         services
