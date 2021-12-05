@@ -21,4 +21,12 @@ public sealed class UserProfileEndpoints : ApiEndpointBase
         var response = await Sender.Send(request, token);
         return response.Match(up => (IActionResult)Ok(up), NotFound);
     }
+    
+    [HttpPut("/profile")]
+    public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileRequest request, CancellationToken token)
+    {
+        request.UserId = CurrentUserId;
+        var response = await Sender.Send(request, token);
+        return response.Succeeded ? Ok(response) : BadRequest(response);
+    }
 }

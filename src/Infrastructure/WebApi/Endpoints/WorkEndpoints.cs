@@ -36,7 +36,7 @@ public sealed class WorkEndpoints : ApiEndpointBase
         Ok(await Sender.Send(request, token));
 
     [HttpGet(WorkCountRoot)]
-    public async Task<IActionResult> GetWorkCount(CancellationToken token) => Ok(await Sender.Send(new(), token));
+    public async Task<IActionResult> GetWorkCount(CancellationToken token) => Ok(await Sender.Send(new GetWorkCountRequest(), token));
 
     [HttpGet(WorkFilterRoot)]
     public async Task<IActionResult> GetWorksByFilter([FromQuery] GetWorksByFilterRequest request,
