@@ -25,7 +25,9 @@ public sealed class GetUserProfileRequestHandler : IRequestHandler<GetUserProfil
     public async Task<Option<GetUserProfileResponse>> Handle(GetUserProfileRequest request, CancellationToken cancellationToken)
     {
         var userOption = (Option<User>)await _manager.FindByIdAsync(request.UserId);
-        return await userOption.BindAsync(ToResponse);
+        return userOption.IsNone 
+            ? Option<GetUserProfileResponse>.None 
+            : await userOption.BindAsync(ToResponse);
     }
 
     private async Task<OptionAsync<GetUserProfileResponse>> ToResponse(User user)
