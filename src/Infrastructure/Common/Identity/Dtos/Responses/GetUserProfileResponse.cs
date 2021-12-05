@@ -7,7 +7,8 @@ public sealed record GetUserProfileResponse(
     string LastName,
     Gender Gender, 
     DateTime? BirthDate, 
-    string Email)
+    string Email,
+    string PhoneNumber)
 {
-    public string ImageUrl { get; set; } = "";
+    public List<string> Images { get; set; } = new();
 }

@@ -31,9 +31,12 @@ public sealed class GetUserProfileRequestHandler : IRequestHandler<GetUserProfil
     private async Task<OptionAsync<GetUserProfileResponse>> ToResponse(User user)
     {
         var response = _mapper.Map<User, GetUserProfileResponse>(user);
-        var imageUrl = await _db.ProfileImages.FirstOrDefaultAsync(pi => pi.OwnerId == user.Id);
-        if (imageUrl != null)
-            response.ImageUrl = imageUrl.ImageUrl;
+        var images = await _db.ProfileImages
+            .Where(pi => pi.OwnerId == user.Id)
+            .Select(pi => pi.ImageUrl)
+            .ToListAsync();
+        if (images != null)
+            response.Images = images;
         return response;
     }
 }
