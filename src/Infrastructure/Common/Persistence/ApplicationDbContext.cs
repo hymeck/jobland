@@ -3,6 +3,7 @@ using Jobland.Application.Persistence.Abstractions;
 using Jobland.Domain.Common;
 using Jobland.Domain.Core;
 using Jobland.Infrastructure.Common.Identity;
+using Jobland.Infrastructure.Common.Messenger;
 using LanguageExt;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +35,7 @@ public class ApplicationDbContext : IdentityDbContext<User>, IApplicationDbConte
 
     public DbSet<Work> Works => Set<Work>();
     public DbSet<ProfileImage> ProfileImages => Set<ProfileImage>();
+    public DbSet<DirectMessage> DirectMessages => Set<DirectMessage>();
 
     public async Task<Option<int>> SaveChangesSafelyAsync(CancellationToken cancellation = default)
     {
