@@ -28,13 +28,11 @@ public static class EntityTypeBuilderExtensions
         builder
             .Property(e => e.Added)
             .IsRequired(true)
-            .HasDefaultValue(DateTime.UtcNow)
             .HasColumnName("added");
         
         builder
             .Property(e => e.Modified)
             .IsRequired(true)
-            .HasDefaultValue(DateTime.UtcNow)
             .HasColumnName("modified");
 
         return builder;

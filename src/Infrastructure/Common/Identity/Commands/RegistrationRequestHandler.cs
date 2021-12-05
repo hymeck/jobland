@@ -38,6 +38,6 @@ public sealed class RegistrationRequestHandler : IRequestHandler<RegistrationReq
         var created = await _userManager.CreateAsync(user, request.Password);
         return !created.Succeeded
             ? AuthResponse.Fail(created.Errors.Select(e => e.Description).ToList())
-            : AuthResponse.Ok(_tokenService.GenerateJwtToken(user));
+            : AuthResponse.Ok(_tokenService.GenerateJwtToken(user), user.Id);
     }
 }

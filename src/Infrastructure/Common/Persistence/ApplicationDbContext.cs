@@ -33,6 +33,7 @@ public class ApplicationDbContext : IdentityDbContext<User>, IApplicationDbConte
     public DbSet<Subcategory> Subcategories => Set<Subcategory>();
 
     public DbSet<Work> Works => Set<Work>();
+    public DbSet<ProfileImage> ProfileImages => Set<ProfileImage>();
 
     public async Task<Option<int>> SaveChangesSafelyAsync(CancellationToken cancellation = default)
     {

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Jobland.Infrastructure.Common.Identity.Dtos.Requests;
+using Jobland.Infrastructure.Common.Identity.Dtos.Responses;
 
 namespace Jobland.Infrastructure.Common.Identity.Mappings;
 
@@ -11,5 +12,8 @@ public class UserMappings : Profile
             .ForMember(d => d.Gender, s => s.MapFrom(r => r.Gender ?? Gender.Male))
             .ForMember(d => d.LastName, s => s.MapFrom(r => r.LastName ?? ""))
             .ForMember(d => d.PhoneNumber, s => s.MapFrom(r => r.PhoneNumber ?? ""));
+
+        CreateMap<CheckCredentialsValidityRequest, User>();
+        CreateMap<User, GetUserProfileResponse>();
     }
 }

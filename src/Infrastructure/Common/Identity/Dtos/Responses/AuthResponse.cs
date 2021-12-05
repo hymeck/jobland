@@ -4,6 +4,7 @@ public sealed record AuthResponse
 {
     public string Token { get; } = "";
     public bool Success { get; }
+    public string UserId { get; init; } = "";
     public IReadOnlyList<string> Errors { get; } = new List<string>();
 
     private AuthResponse(string token)
@@ -18,7 +19,7 @@ public sealed record AuthResponse
         Success = false;
     }
 
-    public static AuthResponse Ok(string token) => new(token);
+    public static AuthResponse Ok(string token, string userId) => new(token) { UserId = userId };
     public static AuthResponse Fail(List<string> errors) => new(errors);
     public static AuthResponse Fail(string error) => new(new List<string> { error });
 }

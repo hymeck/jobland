@@ -35,5 +35,5 @@ public sealed class LoginRequestHandler : IRequestHandler<LoginRequest, AuthResp
     private async Task<AuthResponse> HandleExistingUserAsync(User user, string password, CancellationToken cancellationToken) =>
         !await _userManager.CheckPasswordAsync(user, password)
             ? AuthResponses.IncorrectPassword()
-            : AuthResponse.Ok(_tokenService.GenerateJwtToken(user));
+            : AuthResponse.Ok(_tokenService.GenerateJwtToken(user), user.Id);
 }
