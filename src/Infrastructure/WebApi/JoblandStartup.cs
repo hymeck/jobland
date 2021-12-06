@@ -1,14 +1,18 @@
 ﻿using System.Text;
 using Jobland.Application;
 using Jobland.Infrastructure.Api.Web.Identity;
+using Jobland.Infrastructure.Api.Web.Messenger;
+using Jobland.Infrastructure.Api.Web.Messenger.Implementations;
 using Jobland.Infrastructure.Common;
 using Jobland.Infrastructure.Common.Identity.Abstractions;
+using Jobland.Infrastructure.Common.Messenger.Abstractions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Jobland.Infrastructure.Api.Web;
 
-public class JoblandStartup
+public sealed class JoblandStartup
 {
     private readonly IConfiguration _configuration;
     private readonly IWebHostEnvironment _env;
@@ -27,7 +31,13 @@ public class JoblandStartup
             .AddScoped<IJwtTokenService, JwtTokenService>()
             .AddScoped<IJwtConfigurationProvider, JwtConfigurationProvider>()
             .AddScoped<IProfileImageSensitiveStorageDataProvider, ProfileImageSensitiveStorageDataProvider>()
-            .AddScoped<IProfileImageService, ProfileImageService>();
+            .AddScoped<IProfileImageService, ProfileImageService>()
+            .AddScoped<IDirectMessageService, DirectMessageService>()
+            .AddTransient<IUserIdProvider, JoblandUserIdProvider>();
+
+        services
+            .AddSignalR()
+            .AddAzureSignalR(SignalRConnectionString);
 
         var issuer = _configuration.JwtIssuer();
         var key = _configuration.JwtKey(_env);
@@ -80,5 +90,14 @@ public class JoblandStartup
         {
             endpoints.MapControllers();
         });
+
+        app.UseAzureSignalR(routes =>
+        {
+            routes.MapHub<MessengerHub>("/messenger");
+        });
     }
+    
+    private string SignalRConnectionString => _env.IsDevelopment()
+        ? _configuration["MessengerSignalRConnectionString"]
+        : Environment.GetEnvironmentVariable("MessengerSignalRConnectionString")!;
 }
