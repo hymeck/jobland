@@ -14,6 +14,7 @@ public sealed class GetUserProfileRequestHandler : IRequestHandler<GetUserProfil
     private readonly UserManager<User> _manager;
     private readonly IMapper _mapper;
     private readonly ApplicationDbContext _db;
+    public string DefaultImageUrl => "https://joblandmedia.blob.core.windows.net/profileimages/default-user-profile-image.svg";
 
     public GetUserProfileRequestHandler(UserManager<User> manager, IMapper mapper, ApplicationDbContext db)
     {
@@ -37,8 +38,13 @@ public sealed class GetUserProfileRequestHandler : IRequestHandler<GetUserProfil
             .Where(pi => pi.OwnerId == user.Id)
             .Select(pi => pi.ImageUrl)
             .ToListAsync();
-        if (images != null)
-            response.Images = images;
+
+        response.Images = images switch
+        {
+            null => new List<string> { DefaultImageUrl },
+            { Count: 0 } => new List<string> { DefaultImageUrl },
+            _ => images
+        };
         return response;
     }
 }
