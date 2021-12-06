@@ -1,4 +1,5 @@
 ﻿using Jobland.Application.Logic.Works.Dtos.Requests;
+using Jobland.Infrastructure.Common.Logic.Works.Dtos.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jobland.Infrastructure.Api.Web.Endpoints;
@@ -11,6 +12,7 @@ public sealed class WorkEndpoints : ApiEndpointBase
     public const string WorkCountRoot = WorkRoot + "/count";
     public const string WorkFilterRoot = WorkRoot + "/filter";
     public const string RespondWorkRoot = WorkRoot + "/respond";
+    public const string UserWorksRoot = "user-works";
     
     [HttpPost(WorkRoot)]
     public async Task<IActionResult> AddWork([FromBody] AddWorkRequest request, CancellationToken token)
@@ -50,4 +52,14 @@ public sealed class WorkEndpoints : ApiEndpointBase
     [HttpPut(WorkRoot)]
     public async Task<IActionResult> EditWork([FromBody] UpdateWorkRequest request, CancellationToken token) => 
         await Sender.Send(request, token) ? Ok() : BadRequest();
+
+#if DEBUG
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+#endif
+    [HttpGet(UserWorksRoot)]
+    public async Task<IActionResult> GetUserAddedWorks([FromQuery] GetUserAddedWorksRequest request, CancellationToken token)
+    {
+        var responseOption = await Sender.Send(request, token);
+        return responseOption.Match(r => (IActionResult)Ok(r), NotFound);
+    }
 }

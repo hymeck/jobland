@@ -3,6 +3,7 @@ using Jobland.Application.Logic.Works.Queries;
 using Jobland.Domain.Core;
 using Jobland.Infrastructure.Common.Persistence;
 using LanguageExt;
+using LanguageExt.SomeHelp;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jobland.Infrastructure.Common.Logic.Implementations;
@@ -96,4 +97,13 @@ public class WorkRepository : IWorkRepository
         }, () => -1);
         return affected > 0;
     }
+
+    public async Task<Option<IEnumerable<Work>>> GetWorkByAuthorIdAsync(string authorId, CancellationToken token = default) =>
+        await _db.Users.AnyAsync(u => u.Id == authorId, token)
+            ? _db
+                .NoTrackingWorksWithIncludedEntities()
+                .Where(w => w.AuthorId == authorId)
+                .OrderedByDescendingAdded()
+                .AsEnumerable().ToSome()
+            : Option<IEnumerable<Work>>.None;
 }

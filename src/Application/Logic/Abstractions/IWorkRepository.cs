@@ -14,4 +14,5 @@ public interface IWorkRepository
     public Task<long> GetTotalWorksCountAsync(CancellationToken token = default);
     public Task<IEnumerable<Work>> GetWorksByFilterAsync(WorkSearchFilter filter, CancellationToken token = default);
     public Task<bool> RespondWorkAsync(long workId, CancellationToken token = default);
+    public Task<Option<IEnumerable<Work>>> GetWorkByAuthorIdAsync(string authorId, CancellationToken token = default);
 }
