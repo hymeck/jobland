@@ -23,6 +23,7 @@ public sealed class GetWorksByFilterRequestHandler : IRequestHandler<GetWorksByF
     {
         var filter = new WorkSearchFilter
         {
+            Title = request.Title,
             Finished = request.Finished,
             LowerPriceBound = request.LowerPriceBound,
             Started = request.Started,

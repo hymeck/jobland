@@ -4,6 +4,7 @@ using MediatR;
 namespace Jobland.Application.Logic.Works.Dtos.Requests;
 
 public sealed record GetWorksByFilterRequest(
+    string? Title = null,
     long? LowerPriceBound = null,
     long? UpperPriceBound = null,
     DateTime? Started = null,

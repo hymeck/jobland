@@ -2,6 +2,7 @@
 
 public readonly struct WorkSearchFilter
 {
+    public string? Title { get; init; }
     public long? LowerPriceBound { get; init; }
     public long? UpperPriceBound { get; init; }
     public DateTime? Started { get; init; }

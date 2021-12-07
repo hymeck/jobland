@@ -67,6 +67,8 @@ public class WorkRepository : IWorkRepository
         var works = _db.NoTrackingWorksWithIncludedEntities();
 
         // todo: error-prone, rude and dirty imperative
+        if (!string.IsNullOrEmpty(filter.Title))
+            works = works.Where(w => w.Title.Contains(filter.Title));
         if (ids != null && ids.Count != 0)
             works = works.Where(w => ids.Contains(w.SubcategoryId));
         if (lower != null)
