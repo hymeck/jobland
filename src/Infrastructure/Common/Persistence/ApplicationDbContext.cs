@@ -34,6 +34,7 @@ public class ApplicationDbContext : IdentityDbContext<User>, IApplicationDbConte
 
     public DbSet<Work> Works => Set<Work>();
     public DbSet<ProfileImage> ProfileImages => Set<ProfileImage>();
+    public DbSet<WorkResponse> WorkResponses => Set<WorkResponse>();
 
     public async Task<Option<int>> SaveChangesSafelyAsync(CancellationToken cancellation = default)
     {

@@ -13,6 +13,6 @@ public interface IWorkRepository
     public Task<IEnumerable<Work>> GetPaginatedWorksAsync(int offset, int limit, CancellationToken token = default);
     public Task<long> GetTotalWorksCountAsync(CancellationToken token = default);
     public Task<IEnumerable<Work>> GetWorksByFilterAsync(WorkSearchFilter filter, CancellationToken token = default);
-    public Task<bool> RespondWorkAsync(long workId, CancellationToken token = default);
+    public Task<Option<bool>> RespondWorkAsync(long workId, string responderId, CancellationToken token = default);
     public Task<Option<IEnumerable<Work>>> GetWorkByAuthorIdAsync(string authorId, CancellationToken token = default);
 }

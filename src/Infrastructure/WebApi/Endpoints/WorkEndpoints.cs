@@ -46,8 +46,12 @@ public sealed class WorkEndpoints : ApiEndpointBase
         Ok(await Sender.Send(request, token));
 
     [HttpPost(RespondWorkRoot)]
-    public async Task<IActionResult> RespondWork([FromQuery] RespondWorkRequest request, CancellationToken token) => 
-        await Sender.Send(request, token) ? Ok() : BadRequest();
+    public async Task<IActionResult> RespondWork([FromQuery] RespondWorkRequest request, CancellationToken token)
+    {
+        request.ResponderId = CurrentUserId;
+        var responseOption = await Sender.Send(request, token);
+        return responseOption.Match(r => (IActionResult)Ok(r), BadRequest);
+    }
 
     [HttpPut(WorkRoot)]
     public async Task<IActionResult> EditWork([FromBody] UpdateWorkRequest request, CancellationToken token) => 

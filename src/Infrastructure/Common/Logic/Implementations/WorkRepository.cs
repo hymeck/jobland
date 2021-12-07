@@ -5,6 +5,7 @@ using Jobland.Domain.Core;
 using Jobland.Infrastructure.Common.Persistence;
 using LanguageExt;
 using LanguageExt.SomeHelp;
+using LanguageExt.UnsafeValueAccess;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jobland.Infrastructure.Common.Logic.Implementations;
@@ -85,16 +86,29 @@ public class WorkRepository : IWorkRepository
         return Task.FromResult(works.AsEnumerable());
     }
 
-    public async Task<bool> RespondWorkAsync(long workId, CancellationToken token = default)
+    public async Task<Option<bool>> RespondWorkAsync(long workId, string responderId, CancellationToken token = default)
     {
+        if (!await _db.Users.AnyAsync(u => u.Id == responderId, token))
+            return Option<bool>.None;
+        if (await _db.WorkResponses.AnyAsync(wr => wr.ResponderId == responderId && wr.WorkId == workId, token))
+            return false;
+        
         var workOption = await GetWorkByIdAsync(workId, token);
-        var affected = await workOption.MatchAsync(w =>
+        var success = await workOption.MatchAsync(w =>
         {
             // todo: referential transparency is violated
-            _db.Works.Update(w);
+            _db.Works.Update(w.IncrementResponses());
             return _db.SaveChangesAsync(token);
-        }, () => -1);
-        return affected > 0;
+        }, () => -1) > 0;
+        
+        if (success)
+        {
+            var response = new WorkResponse { Work = workOption.ValueUnsafe(), ResponderId = responderId };
+            _db.WorkResponses.Add(response);
+            return (await _db.SaveChangesSafelyAsync(token)).Map(a => a > 0);
+        }
+        
+        return success;
     }
 
     public async Task<Option<IEnumerable<Work>>> GetWorkByAuthorIdAsync(string authorId, CancellationToken token = default) =>
