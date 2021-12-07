@@ -18,6 +18,12 @@ public class WorkRepository : IWorkRepository
 
     public async Task<Option<Work>> AddWorkAsync(Work work, CancellationToken token = default)
     {
+        var subcategory = await _db.Subcategories
+            .Include(sc => sc.Category)
+            .FirstOrDefaultAsync(sc => sc.Id == work.SubcategoryId, token);
+        if (subcategory == null)
+            return Option<Work>.None;
+        work.Subcategory = subcategory;
         _db.Works.Add(work);
         var option = await _db.SaveChangesSafelyAsync(token);
         return option.Match(_ => work, Option<Work>.None);

@@ -12,4 +12,7 @@ public sealed record AddWorkRequest(
     string PhoneNumber,
     long? LowerPriceBound,
     long? UpperPriceBound,
-    long SubcategoryId) : IRequest<Option<WorkPlainResponse>>;
+    long SubcategoryId) : IRequest<Option<WorkPlainResponse>>
+{
+    public string AuthorId { get; set; } = "";
+}

@@ -17,6 +17,7 @@ public sealed class WorkEndpoints : ApiEndpointBase
     [HttpPost(WorkRoot)]
     public async Task<IActionResult> AddWork([FromBody] AddWorkRequest request, CancellationToken token)
     {
+        request.AuthorId = CurrentUserId;
         var response = await Sender.Send(request, token);
         return response.Match(w => (IActionResult)Ok(w), BadRequest);
     }
