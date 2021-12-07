@@ -2,6 +2,7 @@
 using Jobland.Application.Logic.Abstractions;
 using Jobland.Application.Logic.Works.Dtos.Requests;
 using Jobland.Application.Logic.Works.Dtos.Responses;
+using Jobland.Application.Logic.Works.Extensions;
 using Jobland.Domain.Core;
 using MediatR;
 
@@ -21,7 +22,8 @@ public sealed class GetWorksByTitleRequestHandler
 
     public async Task<IEnumerable<WorkPlainResponse>> Handle(GetWorksByTitleRequest request, CancellationToken cancellationToken)
     {
-        var works = await _repository.GetWorksByTitleAsync(request.Title, cancellationToken);
-        return _mapper.Map<IEnumerable<Work>, IEnumerable<WorkPlainResponse>>(works);
+        var (title, offset, limit) = request;
+        var works = await _repository.GetWorksByTitleAsync(title, cancellationToken);
+        return _mapper.Map<IEnumerable<Work>, IEnumerable<WorkPlainResponse>>(works.ApplyPagination(offset, limit));
     }
 }

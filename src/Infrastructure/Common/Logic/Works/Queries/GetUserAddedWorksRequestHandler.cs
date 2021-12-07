@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Jobland.Application.Logic.Abstractions;
 using Jobland.Application.Logic.Works.Dtos.Responses;
+using Jobland.Application.Logic.Works.Extensions;
 using Jobland.Domain.Core;
 using Jobland.Infrastructure.Common.Logic.Works.Dtos.Requests;
 using LanguageExt;
@@ -21,7 +22,8 @@ public sealed class GetUserAddedWorksRequestHandler : IRequestHandler<GetUserAdd
 
     public async Task<Option<IEnumerable<WorkPlainResponse>>> Handle(GetUserAddedWorksRequest request, CancellationToken cancellationToken)
     {
-        var resultOption = await _repository.GetWorkByAuthorIdAsync(request.UserId, cancellationToken);
-        return resultOption.Map(works => _mapper.Map<IEnumerable<Work>, IEnumerable<WorkPlainResponse>>(works));
+        var (userId, offset, limit) = request;
+        var resultOption = await _repository.GetWorkByAuthorIdAsync(userId, cancellationToken);
+        return resultOption.Map(works => _mapper.Map<IEnumerable<Work>, IEnumerable<WorkPlainResponse>>(works.ApplyPagination(offset, limit)));
     }
 }

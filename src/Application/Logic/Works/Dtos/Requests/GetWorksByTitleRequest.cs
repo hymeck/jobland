@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Jobland.Application.Logic.Works.Dtos.Requests;
 
-public sealed record GetWorksByTitleRequest(string Title) : IRequest<IEnumerable<WorkPlainResponse>>;
+public sealed record GetWorksByTitleRequest(string Title, int Offset = 0, int Limit = 50) : IRequest<IEnumerable<WorkPlainResponse>>;

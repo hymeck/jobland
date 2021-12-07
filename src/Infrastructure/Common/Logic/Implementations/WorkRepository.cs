@@ -1,4 +1,5 @@
 ﻿using Jobland.Application.Logic.Abstractions;
+using Jobland.Application.Logic.Works.Extensions;
 using Jobland.Application.Logic.Works.Queries;
 using Jobland.Domain.Core;
 using Jobland.Infrastructure.Common.Persistence;
@@ -45,14 +46,10 @@ public class WorkRepository : IWorkRepository
 
     public Task<IEnumerable<Work>> GetPaginatedWorksAsync(int offset, int limit, CancellationToken token = default)
     {
-        var works = (offset, limit) switch
-        {
-            (< 0, _) => Enumerable.Empty<Work>(),
-            (_, <= 0) => Enumerable.Empty<Work>(),
-            _ => _db.NoTrackingWorksWithIncludedEntities()
-                .OrderedByDescendingAdded()
-                .Skip(offset).Take(limit)
-        };
+        var works = _db
+            .NoTrackingWorksWithIncludedEntities()
+            .OrderedByDescendingAdded()
+            .ApplyPagination(offset, limit);
         return Task.FromResult(works);
     }
 

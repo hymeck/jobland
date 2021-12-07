@@ -9,4 +9,6 @@ public sealed record GetWorksByFilterRequest(
     DateTime? Started = null,
     DateTime? Finished = null,
     bool? WithResponses = null,
-    HashSet<long>? Subcategories = null) : IRequest<IEnumerable<WorkPlainResponse>>;
+    HashSet<long>? Subcategories = null,
+    int Offset = 0,
+    int Limit = 50) : IRequest<IEnumerable<WorkPlainResponse>>;

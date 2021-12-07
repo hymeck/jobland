@@ -2,6 +2,7 @@
 using Jobland.Application.Logic.Abstractions;
 using Jobland.Application.Logic.Works.Dtos.Requests;
 using Jobland.Application.Logic.Works.Dtos.Responses;
+using Jobland.Application.Logic.Works.Extensions;
 using Jobland.Domain.Core;
 using MediatR;
 
@@ -30,6 +31,6 @@ public sealed class GetWorksByFilterRequestHandler : IRequestHandler<GetWorksByF
             Subcategories = request.Subcategories
         };
         var works = await _repository.GetWorksByFilterAsync(filter, cancellationToken);
-        return _mapper.Map<IEnumerable<Work>, IEnumerable<WorkPlainResponse>>(works);
+        return _mapper.Map<IEnumerable<Work>, IEnumerable<WorkPlainResponse>>(works.ApplyPagination(request.Offset, request.Limit));
     }
 }
